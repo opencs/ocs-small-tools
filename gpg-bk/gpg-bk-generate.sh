@@ -24,7 +24,7 @@ else
 fi
 
 # Generate
-if gpg --batch --homedir "$GPG_HOME" --full-generate-key; then
+if gpg --homedir "$GPG_HOME" --full-generate-key; then
 	echo "Key generated."
 else
 	echo "Unable to generate the key."

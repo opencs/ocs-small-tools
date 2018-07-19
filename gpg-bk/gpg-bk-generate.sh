@@ -31,3 +31,14 @@ else
 	exit
 fi
 
+# Backup copies
+pushd "$MY_HOME" > /dev/null
+mkdir bk
+BK_FILE=bk/$GPG_HOME_NAME.tar.gz
+tar -czf $BK_FILE $GPG_HOME_NAME
+for i in `seq 1 256`; do
+	dst=$BK_FILE.$(printf "%03d" $i)
+	cp $BK_FILE $dst
+done
+popd > /dev/null
+

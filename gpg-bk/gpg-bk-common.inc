@@ -5,8 +5,11 @@
 # Licensed under BSD 3-Clause License
 ################################################################################
 
+# GPG directory name
+GPG_HOME_NAME=gpg
+
 # Location of the backup gpg keys
-GPG_HOME=$MY_HOME/gpg
+GPG_HOME=$MY_HOME/$GPG_HOME_NAME
 
 # Verifies if the backup directory is initialized.
 is_initialized() {

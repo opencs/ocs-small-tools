@@ -17,6 +17,7 @@ gpg-bk depends on the following tools:
 * GNU bash 4.4 of later:
 * GNU sed 4.4 or later;
 * GNU grep 3.1 or later;
+* GNU tar 1.29 or later;
 
 Those scripts are so simple that they may run or previous version of those tools but
 this scenario was not tested.
@@ -29,7 +30,29 @@ this scenario was not tested.
 
 ## How to use it
 
-TODO: Add instructions here.
+### Generate the key
+
+Just go to the script directory and run **gpg-bk-generate<span></span>.sh**. Do not forget to
+create a large key in order to ensure a long term security for the files.
+
+### Export the public key
+
+Just go to the script directory and run **gpg-bk-export<span></span>.sh**.
+
+### Using the backup keys
+
+Just go to the script directory and run **gpg-bk<span></span>.sh**. It is a simple
+shell over the existing GnuPG program but points to the backup key home.
+
+## How it works
+
+This scripts creates a new GnuPG keyring with the backup private key and store in in the **gpg**
+subdirectory parallel to the scripts home. It also creates multiple compressed backup copies
+of the **gpg** subdirectory and add them to the **bk** subdirectory.
+
+The purpose of those copies is to ensure a minimum redundancy when the contents of this directory
+is stored inside an optical media because at least one copy is expected to be be readable in case
+of minor damage in the disc.
 
 ## Licensing
 
@@ -48,5 +71,6 @@ Key generation failed: No such file or directory
 
 This problem is caused by a previous execution of the **gpg-agent** for another home directory pointing. Solve this by killing the **gpg-agent** with:
 
-```$ pkill pg-agent```
-
+```
+$ pkill pg-agent
+```

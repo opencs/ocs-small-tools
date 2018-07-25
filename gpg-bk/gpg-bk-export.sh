@@ -22,7 +22,7 @@ if ! is_initialized; then
 fi
 
 KEY_NAME=$(get_key_mail)
-if gpg --batch --export -r $KEY_NAME -a > "$MY_HOME/$KEY_NAME.asc"; then
+if gpg --homedir "$GPG_HOME" --export -r $KEY_NAME -a > "$MY_HOME/$KEY_NAME.asc"; then
 	echo "Key exported."
 else
 	echo "Unable to export the key."

@@ -15,17 +15,15 @@
  */
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace add_copyright
 {
-
     internal class Program
     {
-        private static readonly Regex _regexOfPreviousHeader = new Regex(@"^\s*(\/\*+)(.*[\r\n\s]*\*)+(\/)+?", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+        private static readonly Regex _regexOfPreviousHeader = new Regex(@"^[\s\r\n]*\/\*+([\s\r\n]+[^\*]*\*(?!\/))+([\s\r\n]+[^\*]*\*)\**\/", RegexOptions.IgnoreCase | RegexOptions.Multiline);
 
         private static void AddTemplatedCopyrightHeader(string directory, string template) {
             if (Path.GetFileName(directory).IsOneOf("obj", "bin", ".vs"))
@@ -41,27 +39,33 @@ namespace add_copyright
                 headerTemplateFilePath = Path.GetFullPath(headerTemplateFilePath);
             if (!File.Exists(headerTemplateFilePath))
                 throw new Exception($"Can't find template file '{headerTemplateFilePath}'");
-            return File.ReadAllText(headerTemplateFilePath).Replace("@year@", DateTime.Now.Year.ToString());
-        }
-
-        private static void Main(string[] args)
-            => AddTemplatedCopyrightHeader(
-                directory: args.FirstOrDefault() ?? Directory.GetCurrentDirectory(),
-                template: GetTemplate(args.Skip(1).FirstOrDefault() ?? "copyright.template"));
-
-        private static void PrependHeader(string template, string file) {
-            Console.WriteLine(file);
-            var originalText = File.ReadAllText(file);
+            var template = File.ReadAllText(headerTemplateFilePath).Replace("@year@", DateTime.Now.Year.ToString());
             if (!_regexOfPreviousHeader.IsMatch(template))
                 throw new Exception(@"Template is non-conforming it MUST use the format:
   /*
    * ......
    * ......
    */");
+            return template;
+        }
+
+        private static void Main(string[] args) {
+            try {
+                AddTemplatedCopyrightHeader(
+                        directory: args.FirstOrDefault() ?? Directory.GetCurrentDirectory(),
+                        template: GetTemplate(args.Skip(1).FirstOrDefault() ?? "copyright.template"));
+            } catch (Exception e) {
+                Console.Error.WriteLine(e);
+            }
+        }
+
+        private static void PrependHeader(string template, string file) {
+            Console.Write($"Processing {file}");
+            var originalText = File.ReadAllText(file);
             bool matched = _regexOfPreviousHeader.IsMatch(originalText);
             string newText = matched ? _regexOfPreviousHeader.Replace(originalText, template, 1) : template + Environment.NewLine + Environment.NewLine + originalText;
-            Debug.WriteLine(newText);
             File.WriteAllText(file, newText);
+            Console.WriteLine();
         }
     }
 }

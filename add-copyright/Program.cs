@@ -1,5 +1,5 @@
 /**
- * Copyright 2017-2018 InterlockLedger Federation
+ * Copyright 2017-2019 InterlockLedger Federation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,26 +15,19 @@
  */
 
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace add_copyright
 {
-    public static class StringExtensions
-    {
-        public static bool IsOneOf(this string item, params string[] list) => list.Any(s => item.Equals(s, StringComparison.OrdinalIgnoreCase));
-    }
 
     internal class Program
     {
-        private static readonly Regex _regexOfPreviousHeader = new Regex(@"\/\*+.+Copyright.+\*\/", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+        private static readonly Regex _regexOfPreviousHeader = new Regex(@"^\s*(\/\*+)(.*[\r\n\s]*\*)+(\/)+?", RegexOptions.IgnoreCase | RegexOptions.Multiline);
 
-        private static void AddTemplatedCopyrightHeader(string directory, string template)
-        {
+        private static void AddTemplatedCopyrightHeader(string directory, string template) {
             if (Path.GetFileName(directory).IsOneOf("obj", "bin", ".vs"))
                 return;
             foreach (var file in Directory.EnumerateFiles(directory, "*.cs"))
@@ -43,8 +36,7 @@ namespace add_copyright
                 AddTemplatedCopyrightHeader(subdir, template);
         }
 
-        private static string GetTemplate(string headerTemplateFilePath)
-        {
+        private static string GetTemplate(string headerTemplateFilePath) {
             if (!Path.IsPathRooted(headerTemplateFilePath))
                 headerTemplateFilePath = Path.GetFullPath(headerTemplateFilePath);
             if (!File.Exists(headerTemplateFilePath))
@@ -53,21 +45,22 @@ namespace add_copyright
         }
 
         private static void Main(string[] args)
-        {
-            AddTemplatedCopyrightHeader(
+            => AddTemplatedCopyrightHeader(
                 directory: args.FirstOrDefault() ?? Directory.GetCurrentDirectory(),
                 template: GetTemplate(args.Skip(1).FirstOrDefault() ?? "copyright.template"));
-        }
 
-        private static void PrependHeader(string template, string file)
-        {
+        private static void PrependHeader(string template, string file) {
             Console.WriteLine(file);
             var originalText = File.ReadAllText(file);
-            var newText = originalText;
-            if (_regexOfPreviousHeader.IsMatch(originalText))
-                newText = _regexOfPreviousHeader.Replace(originalText, template);
-            else
-                newText = template + Environment.NewLine + Environment.NewLine + originalText;
+            if (!_regexOfPreviousHeader.IsMatch(template))
+                throw new Exception(@"Template is non-conforming it MUST use the format:
+  /*
+   * ......
+   * ......
+   */");
+            bool matched = _regexOfPreviousHeader.IsMatch(originalText);
+            string newText = matched ? _regexOfPreviousHeader.Replace(originalText, template, 1) : template + Environment.NewLine + Environment.NewLine + originalText;
+            Debug.WriteLine(newText);
             File.WriteAllText(file, newText);
         }
     }
